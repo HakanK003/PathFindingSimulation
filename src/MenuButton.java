@@ -17,6 +17,9 @@ public class MenuButton extends JButton implements ActionListener {
         clickType = ClickType.valueOf(clickedButton.getText().toUpperCase());
 
         // Print the log of the action
+        System.out.println("Log for action #" + GlobalSettings.logCounter++);
         System.out.println("Clicked to " + buttonText);
+        System.out.println("Click type set to " + clickType);
+        System.out.println("--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
     }
 }

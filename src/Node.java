@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
 
 public class Node extends JButton implements ActionListener {
     Node parent;
@@ -11,61 +10,128 @@ public class Node extends JButton implements ActionListener {
     int gCost;
     int hCost;
     int fCost;
-    CellType cellType;
+    CellTypeTerrain cellTypeTerrain;
+    CellTypeAlgo cellTypeAlgo;
+    boolean targetNode = false;
 
 
-
-
+    // Node (aka Cell) Constructor --- --- --- /// --- --- --- /// --- --- --- /// --- --- ---
     public Node(int column, int row) {
         this.column = column;
         this.row = row;
-        this.cellType = CellType.EMPTY;
+        this.cellTypeTerrain = CellTypeTerrain.EMPTY;
+        this.cellTypeAlgo = CellTypeAlgo.NOTHING;
 
         setBackground(Color.white);
         setForeground(Color.black);
 
+        setText("C-" + column + "| R-" + row);
         addActionListener(this);
     }
 
-    // To Set What happens after clicking on the node
-//    public void setClickType(ClickType clickType){
-//        Node.clickType = clickType;
-//    }
+
+
+    // Setting node type --- --- --- /// --- --- --- /// --- --- --- /// --- --- ---
 
     // Set a node as Start node
     public void setAsStart(){
-        setBackground(CellType.START.color);
+        setBackground(CellTypeTerrain.START.color);
         setText("Start");
-        cellType = CellType.START;
+        cellTypeTerrain = CellTypeTerrain.START;
+        gCost = 0;
     }
     // Set a node as Target node
     public void setAsTarget(){
-        setBackground(CellType.TARGET.color);
+        setBackground(CellTypeTerrain.TARGET.color);
         setText("Target");
-        cellType = CellType.TARGET;
+        this.targetNode = true;
+        cellTypeTerrain = CellTypeTerrain.TARGET;
     }
 
     public void setCellAs (String providedCellType){
-        setBackground(CellType.valueOf(providedCellType).color);
+        setBackground(CellTypeTerrain.valueOf(providedCellType).color);
         setText(providedCellType);
-        cellType = CellType.valueOf(providedCellType);
+        cellTypeTerrain = CellTypeTerrain.valueOf(providedCellType);
     }
 
+
+    // Setting CellTypeAlgo method --- --- --- /// --- --- --- /// --- --- --- /// --- --- ---
+
+    // open = FOCUS
+    public void setAsFocus() {
+        cellTypeAlgo = CellTypeAlgo.FOCUS;
+        //setBackground(CellTypeAlgo.FOCUS.color);
+    }
+    public void setAsChecked () {
+        if (cellTypeTerrain != CellTypeTerrain.START && cellTypeTerrain != CellTypeTerrain.TARGET) {
+            cellTypeAlgo = CellTypeAlgo.CHECKED;
+            setBackground(CellTypeAlgo.CHECKED.color);
+        }
+    }
+
+    public void setAsPath () {
+        setBackground(CellTypeAlgo.PATH.color);
+    }
+
+
+
+    // Click method --- --- --- /// --- --- --- /// --- --- --- /// --- --- ---
     @Override
     public void actionPerformed(ActionEvent e) {
 
         String clickTypeAsStr = String.valueOf(MenuButton.clickType);
-        if (clickTypeAsStr.equals("CLOSE")){
-            return;
+        switch (clickTypeAsStr) {
+            case "CLOSE":
+                return;
+            case "EMPTY":
+                {
+                  Node clickedButton = (Node)e.getSource();
+                  String buttonStr = clickedButton.getText();
+                  if (buttonStr.equals("START")) {
+                      GlobalSettings.startCellCount--;
+                  }else if (buttonStr.equals("TARGET")) {
+                      GlobalSettings.targetCellCount--;
+                  }else if (buttonStr.equals("ROBOT")) {
+                      GlobalSettings.robotCount--;
+                  }
+                }
+                break;
+            case "ROBOT":
+                if (GlobalSettings.robotCount++ == 0) {
+                    setCellAs(clickTypeAsStr);
+                } else {
+                    System.out.println("Log for action #" + GlobalSettings.logCounter++ + "\nThere is already a robot cell\n--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
+                    return;
+                }
+                break;
+            case "START":
+                if (GlobalSettings.startCellCount++ == 0) {
+                    setCellAs(clickTypeAsStr);
+                    MapPanel.startNode = MapPanel.nodeMatrix[column][row];
+                    MapPanel.currentNode = MapPanel.startNode;
+                } else {
+                    System.out.println("Log for action #" + GlobalSettings.logCounter++ + "\nThere is already a start cell\n--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
+                    return;
+                }
+                break;
+            case "TARGET":
+                if (GlobalSettings.targetCellCount++ == 0) {
+                    setCellAs(clickTypeAsStr);
+                    MapPanel.targetNode = MapPanel.nodeMatrix[column][row];
+                } else {
+                    System.out.println("Log for action #" + GlobalSettings.logCounter++ + "\nThere is already a target cell\n--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
+                    return;
+                }
+                break;
         }
-
         setCellAs(clickTypeAsStr);
-//        this.cellType = CellType.valueOf(clickTypeAsStr);
-//
-//        setBackground(cellType.color);
 
         // Print the log of the action
-        System.out.println("Tried to set cell value to " + cellType);// + clickTypeAsStr);
-        System.out.println("Click type was " + MenuButton.clickType);// + clickTypeAsStr);
+        System.out.println("Log for action #" + GlobalSettings.logCounter++);
+        System.out.println("Clicked on cell in column " + column + " row " + row);
+        System.out.println("Tried to set cell value to " + cellTypeTerrain);
+        System.out.println("Click type was " + MenuButton.clickType);
+        System.out.println("--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
+
     }
 }

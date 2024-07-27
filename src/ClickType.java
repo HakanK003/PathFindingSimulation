@@ -8,6 +8,7 @@ public enum ClickType {
     UNKNOWN,
     START,
     TARGET,
+    ROBOT,
     SAVE,
     RESET
 }
