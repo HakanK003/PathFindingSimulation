@@ -7,6 +7,7 @@ public class Main {
         // Main window settings
         GlobalFrame frame = new GlobalFrame();
 
+        // Minor change to set second branch
 
         // Creating a #x# map using squares
 //        for (int i = 0; i < MAP.COLUMNS; i++) {
