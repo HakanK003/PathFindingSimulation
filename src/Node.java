@@ -71,6 +71,7 @@ public class Node extends JButton implements ActionListener {
 
     public void setAsPath () {
         setBackground(CellTypeAlgo.PATH.color);
+        cellTypeAlgo = CellTypeAlgo.PATH;
     }
 
 

@@ -1,7 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class MapPanel extends JPanel {
 
@@ -22,10 +22,10 @@ public class MapPanel extends JPanel {
 
     // Algorithm Configuration --- --- --- ||| --- --- --- ||| --- --- --- ||| --- --- ---
     // A Star Algorithm Setup
-    ArrayList<Node> focusList = new ArrayList<>();
+    static ArrayList<Node> focusList = new ArrayList<>();
     ArrayList<Node> checkedList = new ArrayList<>();
     int step = 0;
-    boolean targetReached = false;
+    static boolean targetReached = false;
 
 
 
@@ -51,7 +51,7 @@ public class MapPanel extends JPanel {
         setStartNode(14,9);
         setTargetNode(2, 2);
 
-        setCostOnNodes();
+        setInitialCostOnNodes();
 
     }
 
@@ -72,25 +72,14 @@ public class MapPanel extends JPanel {
 
 
     // Calculating costs of the cells method --- --- --- ||| --- --- --- ||| --- --- --- ||| --- --- ---
-    private void getCost (Node node){
-//        // Calculate G Cost
-//        int xDistance = Math.abs(node.column - startNode.column);
-//        int yDistance = Math.abs(node.row - startNode.row);
-//        //node.gCost = (int) (10 * Math.sqrt(xDistance*xDistance + yDistance*yDistance));
-//        node.gCost = (int) (10 * (Math.max(xDistance, yDistance) + Math.min(xDistance, yDistance) * (Math.sqrt(2) - 1)));
-        node.gCost = Integer.MAX_VALUE;
+    private void getInitialCost(Node node){
 
-        //Calculate H cost new
-//        public static double calculateHCost(Node currentNode, Node targetNode) {
-//            int distanceX = Math.abs(targetNode.column - currentNode.column);
-//            int distanceY = Math.abs(targetNode.row - currentNode.row);
-//            return Math.max(distanceX, distanceY) + Math.min(distanceX, distanceY) * (Math.sqrt(2) - 1);
-//        }
         // Calculate H Cost
         int xDistance = Math.abs(node.column - targetNode.column);
         int yDistance = Math.abs(node.row - targetNode.row);
         node.hCost = (int) (10 * (Math.max(xDistance, yDistance) + Math.min(xDistance, yDistance) * (Math.sqrt(2) - 1)));
-
+        // Calculate G Cost
+        node.gCost = 0;
         // Calculate F Cost
         node.fCost = Integer.MAX_VALUE;
 
@@ -99,12 +88,12 @@ public class MapPanel extends JPanel {
         }
     }
     // Writes costs of the cell on the cell
-    private void setCostOnNodes(){
+    public void setInitialCostOnNodes(){
         int c = 0;
         int r = 0;
 
         while (c < columns && r < rows) {
-            getCost(nodeMatrix[c][r]);
+            getInitialCost(nodeMatrix[c][r]);
             c++;
             if (c == columns) {
                 c = 0;
@@ -116,30 +105,20 @@ public class MapPanel extends JPanel {
     // Change cell type to FOCUS (aka open) --- --- --- ||| --- --- --- ||| --- --- --- ||| --- --- ---
 
     // focused on an empty cell open = FOCUS
-    private void focusNode (Node node) {
-        if (node.cellTypeAlgo != CellTypeAlgo.FOCUS && node.cellTypeAlgo != CellTypeAlgo.CHECKED && node.cellTypeTerrain != CellTypeTerrain.WALL) {
+    private void focusNode (Node currentNode, Node newFocusNode, int possibleNewGCost) {
+        if (newFocusNode.cellTypeAlgo != CellTypeAlgo.FOCUS && newFocusNode.cellTypeAlgo != CellTypeAlgo.CHECKED && newFocusNode.cellTypeTerrain != CellTypeTerrain.WALL) {
 
-//            try
-//            {
-//                Thread.sleep(250);
-//            }
-//            catch(InterruptedException ex)
-//            {
-//                Thread.currentThread().interrupt();
-//            }
-//
-            node.setAsFocus();
+            newFocusNode.setAsFocus();
 
-            int newGCost = getNewGCost(node);
-            if (newGCost < node.gCost) {
-                node.gCost = newGCost;
-                node.fCost = node.gCost + node.hCost;
-                node.setText("<html>F:" + node.fCost + "<br>G:" + node.gCost + "<br>H:" + node.hCost + "</html>");
+            //int newGCost = getNewGCost(newFocusNode);
+            if (possibleNewGCost < newFocusNode.gCost || newFocusNode.gCost == 0) {
+                newFocusNode.gCost = possibleNewGCost;
+                newFocusNode.fCost = newFocusNode.gCost + newFocusNode.hCost;
+                newFocusNode.setText("<html>F:" + newFocusNode.fCost + "<br>G:" + newFocusNode.gCost + "<br>H:" + newFocusNode.hCost + "</html>");
             }
 
-
-            node.parent = currentNode;
-            focusList.add(node);
+            newFocusNode.parent = currentNode;
+            focusList.add(newFocusNode);
         }
     }
 
@@ -160,49 +139,48 @@ public class MapPanel extends JPanel {
 
         int xDistance = Math.abs(node.column - parentColumn);
         int yDistance = Math.abs(node.row - parentRow);
-        //node.gCost = (int) (10 * Math.sqrt(xDistance*xDistance + yDistance*yDistance));
-        //
+
         return parentGCost + (int) (10 * (Math.max(xDistance, yDistance) + Math.min(xDistance, yDistance) * (Math.sqrt(2) - 1)));
     }
 
 
     // Auto Search for A Star Algo --- --- --- ||| --- --- --- ||| --- --- --- ||| --- --- ---
     public void autoSearch() {
-        while (!targetReached && step < 1000) {
+        while (!targetReached) {// && step < 10000
             int c = currentNode.column;
             int r = currentNode.row;
 
             currentNode.setAsChecked();
-            checkedList.add(currentNode);
+            //checkedList.add(currentNode);
             focusList.remove(currentNode);
 
             // 4 Direction Check
             // Focus the upper cell if there is one
             if (r - 1 > -1)
-                focusNode(nodeMatrix[c][r - 1]);
+                focusNode(currentNode, nodeMatrix[c][r - 1], currentNode.gCost + 10);
             // Focus the left cell if there is one
             if (c - 1 > -1)
-                focusNode(nodeMatrix[c - 1][r]);
+                focusNode(currentNode, nodeMatrix[c - 1][r], currentNode.gCost + 10);
             // Focus the down cell if there is one
             if (r + 1 < rows)
-                focusNode(nodeMatrix[c][r + 1]);
+                focusNode(currentNode, nodeMatrix[c][r + 1], currentNode.gCost + 10);
             // Focus the right cell if there is one
             if (c + 1 < columns)
-                focusNode(nodeMatrix[c + 1][r]);
+                focusNode(currentNode, nodeMatrix[c + 1][r], currentNode.gCost + 10);
 
-            // * Direction Check (+4)
-            // Focus the upper-left cell if there is one
-            if (r - 1 > -1 && c - 1 > -1 && !(nodeMatrix[c - 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r - 1].cellTypeTerrain == CellTypeTerrain.WALL))
-                focusNode(nodeMatrix[c - 1][r - 1]);
-            // Focus the down-left cell if there is one
-            if (r + 1 < rows && c - 1 > -1 && !(nodeMatrix[c - 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r + 1].cellTypeTerrain == CellTypeTerrain.WALL))
-                focusNode(nodeMatrix[c - 1][r + 1]);
-            // Focus the upper-right cell if there is one
-            if (r - 1 > -1 && c + 1 < columns && !(nodeMatrix[c + 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r - 1].cellTypeTerrain == CellTypeTerrain.WALL))
-                focusNode(nodeMatrix[c + 1][r - 1]);
-            // Focus the down-right cell if there is one
-            if (r + 1 < rows && c + 1 < columns && !(nodeMatrix[c + 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r + 1].cellTypeTerrain == CellTypeTerrain.WALL))
-                focusNode(nodeMatrix[c + 1][r + 1]);
+//            // * Direction Check (+4)
+//            // Focus the upper-left cell if there is one
+//            if (r - 1 > -1 && c - 1 > -1 && !(nodeMatrix[c - 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r - 1].cellTypeTerrain == CellTypeTerrain.WALL))
+//                focusNode(currentNode, nodeMatrix[c - 1][r - 1], currentNode.gCost + 14);
+//            // Focus the down-left cell if there is one
+//            if (r + 1 < rows && c - 1 > -1 && !(nodeMatrix[c - 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r + 1].cellTypeTerrain == CellTypeTerrain.WALL))
+//                focusNode(currentNode, nodeMatrix[c - 1][r + 1], currentNode.gCost + 14);
+//            // Focus the upper-right cell if there is one
+//            if (r - 1 > -1 && c + 1 < columns && !(nodeMatrix[c + 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r - 1].cellTypeTerrain == CellTypeTerrain.WALL))
+//                focusNode(currentNode, nodeMatrix[c + 1][r - 1], currentNode.gCost + 14);
+//            // Focus the down-right cell if there is one
+//            if (r + 1 < rows && c + 1 < columns && !(nodeMatrix[c + 1][r].cellTypeTerrain == CellTypeTerrain.WALL && nodeMatrix[c][r + 1].cellTypeTerrain == CellTypeTerrain.WALL))
+//                focusNode(currentNode, nodeMatrix[c + 1][r + 1], currentNode.gCost + 14);
 
             // Find the best cell
             int bestNodeIndex = 0;
@@ -220,14 +198,7 @@ public class MapPanel extends JPanel {
                     }
                 }
             }
-//            try
-//            {
-//                Thread.sleep(250);
-//            }
-//            catch(InterruptedException ex)
-//            {
-//                Thread.currentThread().interrupt();
-//            }
+            System.out.println("Evaluated another node " + step++);
             // After the loop we have next step cell
             currentNode = focusList.get(bestNodeIndex);
             //currentNode.cellType == CellType.TARGET
@@ -235,8 +206,17 @@ public class MapPanel extends JPanel {
                 targetReached = true;
                 trackThePath();
             }
-            step++;
+            //step++;
         }
+
+        System.out.println("Searched and found a new path");
+
+
+//        Robot robot = new Robot(startNode);
+//
+//        while (robot.currentCell.cellTypeTerrain != CellTypeTerrain.TARGET) {
+//            robot.goNextOnPath();
+//        }
 
     }
 
@@ -251,6 +231,45 @@ public class MapPanel extends JPanel {
                 current.setAsPath();
             }
         }
+    }
+
+//    // Start robot first version
+//    public void startRobot(){
+//        Robot robot = new Robot(startNode);
+//
+//        while (robot.currentCell.cellTypeTerrain != CellTypeTerrain.TARGET) {
+//            robot.goNextOnPath();
+//        }
+//    }
+
+    // Start robot second (easy version)
+    public void startRobot(){
+        Robot robot = new Robot(startNode);
+        if (robot.currentCell.cellTypeTerrain != CellTypeTerrain.TARGET) {
+            return;
+        } else {
+            robot.goNextOnPath();
+        }
+    }
+
+    static public void resetAlgoCellType (Node newStartNode) {
+        startNode = newStartNode;
+        for (int r = 0; r < GlobalSettings.rows_count; r++) {
+            for (int c = 0; c < GlobalSettings.columns_count; c++) {
+                nodeMatrix[c][r].parent = null;
+                if (nodeMatrix[c][r].cellTypeAlgo == CellTypeAlgo.FOCUS || nodeMatrix[c][r].cellTypeAlgo == CellTypeAlgo.CHECKED ||nodeMatrix[c][r].cellTypeAlgo == CellTypeAlgo.PATH){
+                    nodeMatrix[c][r].cellTypeAlgo = CellTypeAlgo.NOTHING;
+                    nodeMatrix[c][r].setBackground(CellTypeAlgo.NOTHING.color);
+                }
+
+                if (nodeMatrix[c][r].cellTypeTerrain == CellTypeTerrain.WALL){
+                    nodeMatrix[c][r].setBackground(CellTypeTerrain.WALL.color);
+                }
+            }
+        }
+        startNode.setBackground(CellTypeTerrain.START.color);
+        targetNode.setBackground(CellTypeTerrain.TARGET.color);
+        System.out.println("Reset map\n--------------------------------------------------------------------------");
     }
 
 //    // Manual version

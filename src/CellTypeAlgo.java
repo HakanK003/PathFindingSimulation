@@ -11,9 +11,10 @@ public enum CellTypeAlgo {
 
     // Highlighting the cell after evaluating
     NOTHING(Color.white),
-    FOCUS(Color.blue),
+    FOCUS(Color.red),
     CHECKED(Color.cyan),
-    PATH(Color.red),
+    PATH(Color.blue),
+    PASSEDPATH(Color.orange),
 
     // Robot or sensors are on this cell
     ROBOT(Color.magenta),

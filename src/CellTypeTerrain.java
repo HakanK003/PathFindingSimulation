@@ -6,8 +6,8 @@ public enum CellTypeTerrain {
     EMPTY(Color.white),
     WALL(Color.black),
     UNKNOWN(Color.gray),
-    START(Color.green),
-    TARGET(Color.orange),
+    START(Color.red),
+    TARGET(Color.green),
 
 //    // Highlighting the cell after evaluating
 //    FOCUS(Color.red),

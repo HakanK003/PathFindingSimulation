@@ -5,6 +5,7 @@ public class GlobalFrame extends JFrame {
     public final int screenHeight = GlobalSettings.nodeSize * GlobalSettings.rows_count;
     public final int screenWidth = GlobalSettings.nodeSize * GlobalSettings.columns_count + GlobalSettings.menuWidth;
 
+    public static MapPanel mapPanel;
     GlobalFrame(){
         // Main window settings
         JFrame frame = new JFrame();
@@ -18,7 +19,8 @@ public class GlobalFrame extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
         // Adding map panel to mainPanel
-        mainPanel.add(new MapPanel(), BorderLayout.WEST);
+        mapPanel = new MapPanel();
+        mainPanel.add(mapPanel, BorderLayout.WEST);
 
         // Adding menu panel to mainPanel
         mainPanel.add(new MenuPanel(), BorderLayout.EAST);

@@ -13,7 +13,7 @@ public class GlobalSettings {
     public static int targetCellCount = 0;
 
     // Menu information
-    public static final int menuWidth = 500;
+    public static final int menuWidth = 300;
     public static int buttonHeight = 350;
     public static int buttonWidth = 450;
     public static int buttonCount = 9;
@@ -28,4 +28,5 @@ public class GlobalSettings {
     // Sensor count
 
     public static int robotStepSpeed = 1; // 1 second
+    public static int robotSize = nodeSize / 2;
 }
