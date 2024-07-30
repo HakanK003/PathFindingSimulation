@@ -17,7 +17,7 @@ public class KeyHandler implements KeyListener {
         System.out.println("Pressed Enter 1");
 
         if (keyCode == KeyEvent.VK_ENTER) {
-            mapPanel.autoSearch();
+            mapPanel.autoSearch(MapPanel.startNode);
             System.out.println("Pressed Enter 2");
         }
 

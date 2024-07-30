@@ -36,14 +36,18 @@ public class Node extends JButton implements ActionListener {
     // Set a node as Start node
     public void setAsStart(){
         setBackground(CellTypeTerrain.START.color);
-        setText("Start");
+        //setText("Start");
         cellTypeTerrain = CellTypeTerrain.START;
         gCost = 0;
+        setText("<html>F:" + this.fCost + "<br>G:" + this.gCost + "<br>H:" + this.hCost + "</html>");
+
     }
     // Set a node as Target node
     public void setAsTarget(){
         setBackground(CellTypeTerrain.TARGET.color);
-        setText("Target");
+        //setText("Target");
+        setText("<html>F:" + this.fCost + "<br>G:" + this.gCost + "<br>H:" + this.hCost + "</html>");
+
         this.targetNode = true;
         cellTypeTerrain = CellTypeTerrain.TARGET;
     }
@@ -58,19 +62,19 @@ public class Node extends JButton implements ActionListener {
     // Setting CellTypeAlgo method --- --- --- /// --- --- --- /// --- --- --- /// --- --- ---
 
     // open = FOCUS
-    public void setAsFocus() {
+    public void setTypeAsFocus() {
         cellTypeAlgo = CellTypeAlgo.FOCUS;
         //setBackground(CellTypeAlgo.FOCUS.color);
     }
-    public void setAsChecked () {
+    public void setAsChecked() {
         if (cellTypeTerrain != CellTypeTerrain.START && cellTypeTerrain != CellTypeTerrain.TARGET) {
             cellTypeAlgo = CellTypeAlgo.CHECKED;
             setBackground(CellTypeAlgo.CHECKED.color);
         }
     }
-
-    public void setAsPath () {
+    public void setTypeAsPath() {
         setBackground(CellTypeAlgo.PATH.color);
+        cellTypeAlgo = CellTypeAlgo.PATH;
     }
 
 
@@ -107,7 +111,7 @@ public class Node extends JButton implements ActionListener {
             case "START":
                 if (GlobalSettings.startCellCount++ == 0) {
                     setCellAs(clickTypeAsStr);
-                    MapPanel.startNode = MapPanel.nodeMatrix[column][row];
+                    MapPanel.startNode = MapPanel.nodeMatrices[column][row];
                     MapPanel.currentNode = MapPanel.startNode;
                 } else {
                     System.out.println("Log for action #" + GlobalSettings.logCounter++ + "\nThere is already a start cell\n--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
@@ -117,7 +121,7 @@ public class Node extends JButton implements ActionListener {
             case "TARGET":
                 if (GlobalSettings.targetCellCount++ == 0) {
                     setCellAs(clickTypeAsStr);
-                    MapPanel.targetNode = MapPanel.nodeMatrix[column][row];
+                    MapPanel.targetNode = MapPanel.nodeMatrices[column][row];
                 } else {
                     System.out.println("Log for action #" + GlobalSettings.logCounter++ + "\nThere is already a target cell\n--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
                     return;
@@ -133,5 +137,94 @@ public class Node extends JButton implements ActionListener {
         System.out.println("Click type was " + MenuButton.clickType);
         System.out.println("--- --- --- /// --- --- --- /// --- --- --- /// --- --- ---");
 
+    }
+
+
+
+    // New A Star method --- --- --- /// --- --- --- /// --- --- --- /// --- --- ---
+
+    // Calculate H Cost
+    public void calculateHeuristic(Node finalNode) {
+        this.hCost = Math.abs(finalNode.getRow() - getRow()) + Math.abs(finalNode.getColumn() - getColumn());
+    }
+
+    public void setNodeData(Node currentNode, int cost) {
+        int gCost = currentNode.getGCost() + cost;
+        setParent(currentNode);
+        setGCost(gCost);
+        calculateFinalCost();
+    }
+
+
+    public boolean checkBetterPath(Node currentNode, int cost) {
+        int gCost = currentNode.getGCost() + cost;
+        if (gCost < getGCost()) {
+            setNodeData(currentNode, cost);
+            return true;
+        }
+        return false;
+    }
+
+    private void calculateFinalCost() {
+        int finalCost = getGCost() + getHCost();
+        setFCost(finalCost);
+    }
+
+
+
+    public int getHCost() {
+        return hCost;
+    }
+
+    public void setHCost(int hCost) {
+        this.hCost = hCost;
+    }
+
+    public int getGCost() {
+        return gCost;
+    }
+
+    public void setGCost(int gCost) {
+        this.gCost = gCost;
+    }
+
+    public int getFCost() {
+        return fCost;
+    }
+
+    public void setFCost(int fCost) {
+        this.fCost = fCost;
+    }
+
+    public Node getParent() {
+        return parent;
+    }
+
+    public void setParent(Node parent) {
+        this.parent = parent;
+    }
+
+    public boolean isBlock() {
+        return cellTypeTerrain == CellTypeTerrain.WALL;
+    }
+
+    public void setBlock(boolean isBlock) {
+        this.cellTypeTerrain = CellTypeTerrain.WALL;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+    public void setCol(int column) {
+        this.column = column;
     }
 }
